@@ -1,0 +1,35 @@
+//
+//  XboxOneDevice.iig
+//  XboxControllerDriver
+//
+// See the LICENSE.txt file for this sample’s licensing information.
+//
+// Abstract:
+// The driver for the USB device of an Xbox One controller.
+// Since the Xbox One controller's USB device is "vendor specific" (has a bDeviceClass of 0xFF),
+// the DriverKit matching rules require that a driver match to the USB device.
+// This means that the `Info.plist` matching logic is for the device,
+// And interface matching is executed in the device's driver code.
+//
+// Please do not consider this an exact template for other USB devices.
+// Because this is a vendor-specific USB device that is being converted to a HID device,
+// this code is actually quite abnormal.
+// However, its abnormality can provide insight into a lot of DriverKit edge cases.
+//
+
+#ifndef XboxControllerDriver_h
+#define XboxControllerDriver_h
+
+#include <Availability.h>
+#include <DriverKit/IOService.iig>
+
+class XboxOneDevice: public IOService
+{
+public:
+	virtual bool init(void) override;
+	virtual kern_return_t Start(IOService* provider) override;
+	virtual kern_return_t Stop(IOService* provider) override;
+	virtual void free(void) override;
+};
+
+#endif /* XboxControllerDriver_h */

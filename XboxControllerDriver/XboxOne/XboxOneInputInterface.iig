@@ -1,0 +1,66 @@
+//
+//  XboxOneInputInterface.iig
+//  XboxControllerDriver
+//
+// See the LICENSE.txt file for this sample’s licensing information.
+//
+// Abstract:
+// The driver for the "controller" USB interface of an Xbox One controller.
+// An Xbox One controller advertises multiple interfaces
+// where different interface drivers would be necessary to handle their individual functions.
+// For the sake of this example, only the "controller" interface is provided.
+//
+// Please do not consider this an exact template for other USB devices.
+// Because this is a vendor-specific USB device that is being converted to a HID device,
+// this code is actually quite abnormal.
+// However, its abnormality can provide insight into a lot of DriverKit edge cases.
+//
+
+#ifndef XboxOneInputInterface_h
+#define XboxOneInputInterface_h
+
+#include <Availability.h>
+#include <DriverKit/IOService.iig>
+#include <USBDriverKit/IOUSBHostInterface.iig>
+#include <HIDDriverKit/IOUserHIDDevice.iig>
+
+#include <USBPipeData.h>
+
+/// A driver for the controller interface on an Xbox One controller.
+///
+/// Reconfigures the interface packet to be HID compliant. This provides a basic level of functionality for an Xbox One controller.
+/// This does not work for things like Apple Arcade games, for example.
+class XboxOneInputInterface: public IOUserHIDDevice
+{
+public:
+	virtual bool init(void) override;
+	virtual bool handleStart(IOService* provider) override;
+	virtual kern_return_t Start(IOService* provider) override;
+	virtual kern_return_t Stop(IOService* provider) override;
+	virtual void free(void) override;
+
+	virtual OSDictionary* newDeviceDescription(void) override;
+	virtual OSData* newReportDescriptor(void) override;
+
+	virtual kern_return_t NewUserClient(uint32_t type, IOUserClient** userClient) override;
+	void SetEnable(bool enabled) LOCALONLY;
+
+	virtual void GotData(OSAction* action, IOReturn status, uint32_t actualByteCount, uint64_t completionTimestamp) TYPE(IOUSBHostPipe::CompleteAsyncIO);
+
+protected:
+	OSString* CopyStringAtIndex(uint8_t descriptorIndex, uint16_t descriptorLanguage) LOCALONLY;
+	bool InitDescriptors(void) LOCALONLY;
+	bool InitPipes(void) LOCALONLY;
+	bool SetupPipe(usb_pipe_data* pipeData) LOCALONLY;
+	bool SetupPipes(void) LOCALONLY;
+
+	kern_return_t RequestAsyncInterruptData(void) LOCALONLY;
+	kern_return_t SendInterruptData(const uint8_t* data, uint8_t size) LOCALONLY;
+
+	bool HandleReportGeneric(void* data, uint32_t actualByteCount, uint64_t completionTimestamp, uint8_t packetType, uint8_t size) LOCALONLY;
+	bool HandleControllerReport(void* report, uint32_t actualByteCount, uint64_t completionTimestamp) LOCALONLY;
+	bool HandleGuideReport(void* report, uint32_t actualByteCount, uint64_t completionTimestamp) LOCALONLY;
+	bool HandleBrookReport(void* report, uint32_t actualByteCount, uint64_t completionTimestamp) LOCALONLY;
+};
+
+#endif /* XboxOneInputInterface_h */
